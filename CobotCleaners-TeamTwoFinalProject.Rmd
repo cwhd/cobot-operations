@@ -1,0 +1,29 @@
+---
+title: "ETM 640 Team 2 Final Project"
+author: "Team 2"
+output: pdf_document
+---
+
+## Team Members
+
+- Christopher Davis
+- Brandon Iwasaki
+- Taban Yolo
+- Niss Lagah
+
+## Final Paper
+
+[Click here](https://docs.google.com/document/d/14RsYIWRkcGrVW3ZvBQ0Zhixd4qoAOTht5TTymMF9xBg/edit) to check out our final paper.
+
+# Scenario
+
+Cobot Cleaners is a young startup company that uses cobots (collaborative robots) to clean people's homes. There are several different types of cleaning robots designed for certain environments and tasks. Each customer has a different environment that requires a different configuration of cobots to clean effectively, for example a home with extra high ceilings may require a specialized drone, a house with multiple floors will require a robot that can move up and down the stairs to clean them, a location with carpet will require a different vacuum then one with hardwood floors, etc. Being a startup Cobot Cleaners has a certain quantity of each robot and wants to maximize usage of each robot before investing in growing their cobot workforce.
+
+## Scenarios
+
+First Cobot Cleaners wants to optimize transporting the correct configuration of cobots to each location to maximize the use of each robot. They currently have the properties of each customer's location and the properties that each cobot specializes in cleaning. Properties include anything that needs to be cleaned, for example the number of windows, types of flooring, number of sinks, etc. Consider transportation mixes for cobots that can be achieved. Is robot size a factor?
+
+Secondly they would like figure out the optimal configuration of each cobot to minimize the human workforce. Each cobot requires a certain amount of human setup or help, for example the sink cleaning robot needs 5 minutes of human set up, the window cleaning robot needs a few minutes of human supervision per window. Ideally each location would minimize human involvement to maximize profit.
+
+Finally Cobot Cleaners would like to determine which cobots to invest in to maximize growth while minimizing overhead. Their target market includes houses in planned neighborhoods and apartments with known configurations, so we should be able to project which cobots need to be built or configured to meet an estimated demand.
+
