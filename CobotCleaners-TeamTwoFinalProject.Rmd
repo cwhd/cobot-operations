@@ -4,6 +4,17 @@ author: "Team 2"
 output: pdf_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library (magrittr, quietly = TRUE) #Used for pipes/dplyr
+library (dplyr, quietly = TRUE)
+library (ROI, quietly = TRUE)
+library (ROI.plugin.glpk, quietly = TRUE)
+library (ompr, quietly = TRUE)
+library (ompr.roi, quietly = TRUE)
+library (pander, quietly = TRUE)
+```
+
 ## Team Members
 
 - Christopher Davis
@@ -19,11 +30,61 @@ output: pdf_document
 
 Cobot Cleaners is a young startup company that uses cobots (collaborative robots) to clean people's homes. There are several different types of cleaning robots designed for certain environments and tasks. Each customer has a different environment that requires a different configuration of cobots to clean effectively, for example a home with extra high ceilings may require a specialized drone, a house with multiple floors will require a robot that can move up and down the stairs to clean them, a location with carpet will require a different vacuum then one with hardwood floors, etc. Being a startup Cobot Cleaners has a certain quantity of each robot and wants to maximize usage of each robot before investing in growing their cobot workforce.
 
+## Better Scenario
+
+Robots are becoming cheaper to build and cobotics (collaborative robotics) are creating new business opportunities. The home cleaning market is aroung [TODO get number for this] and is an ideal scenario for cobot cleaning services. This paper explores the opportunity from an operations research perspective to determine the ideal configurataion to determine how to transport robots between locations given thier battery and maintenance constraints. This work can be expanded on in the future by simply updating the data used.
+
 ## Scenarios
 
-First Cobot Cleaners wants to optimize transporting the correct configuration of cobots to each location to maximize the use of each robot. They currently have the properties of each customer's location and the properties that each cobot specializes in cleaning. Properties include anything that needs to be cleaned, for example the number of windows, types of flooring, number of sinks, etc. Consider transportation mixes for cobots that can be achieved. Is robot size a factor?
+First we want to optimize transporting the correct configuration of cobots to each location to maximize the use of each robot. They currently have the properties of each customer's location and the properties that each cobot specializes in cleaning. Properties include anything that needs to be cleaned, for example the number of windows, types of flooring, number of sinks, etc. Consider transportation mixes for cobots that can be achieved. Is robot size a factor?
 
+We would like to determine which cobots to invest in to maximize growth while minimizing overhead. Their target market includes houses in planned neighborhoods and apartments with known configurations, so we should be able to project which cobots need to be built or configured to meet an estimated demand. Ideally we would like to find apartment complexes or neighborhoods that we can work in where we can optimize our investments, finding the ideal number of robots based on real estate data should help us do this.
+
+[TEAM: I am not sure we should do this scenario...]
 Secondly they would like figure out the optimal configuration of each cobot to minimize the human workforce. Each cobot requires a certain amount of human setup or help, for example the sink cleaning robot needs 5 minutes of human set up, the window cleaning robot needs a few minutes of human supervision per window. Ideally each location would minimize human involvement to maximize profit.
 
-Finally Cobot Cleaners would like to determine which cobots to invest in to maximize growth while minimizing overhead. Their target market includes houses in planned neighborhoods and apartments with known configurations, so we should be able to project which cobots need to be built or configured to meet an estimated demand.
+### Robot Information
+
+Different configurations of robots are needed for each house or apartment that needs to get clean. For example, if a house has stairs it needs a special sweeper that can move up and down stairs, a special robot is used to clean sinks so the number of sinks can effect the number of robots needed and the time it takes to clean. The following robots and their constraints are available:
+
+Vaccum Robot: Cleans 400 square feet in 30 minutes with a battery life of 2 hours. Can only clean one level of a house at a time, so if there is more than one floor you may need more. This works best on hardwood floors.
+
+Carpet Robot: Specially designed to clean carpets. Can clean 350 square feet in 30 minutes with a battery life of 2 hours.
+
+Duster Drone: Used to fly around the perimiter of a house to dust corners and shelves. Can cover 1200 square feet in 15 minutes and has a battery life of 30 minutes.
+
+Stair Cleaner: Cleans a typcial staircase in 7 minutes, has 2 hour battery life.
+
+Toilet Cleaner: Cleans a toilet in 5 minutes, has a battery life of 2 hours
+
+Sink Cleaner: Cleans a sink in 5 minutes, has a battery life of 2 hours
+
+The following table shows the data for each robot, including cost.
+
+```{r}
+robotData<-read.csv(file="RobotData.csv") #load the data
+print(paste0(nrow(robotData), " rows"))
+print(paste0(ncol(robotData), " columns"))
+pander (robotData, caption="Robot Data")
+
+```
+
+Talk about stuff more here...
+
+And here is data for the locations we will be cleaning:
+
+```{r}
+customerLocationData<-read.csv(file="CustomerLocationData.csv") #load the data
+print(paste0(nrow(customerLocationData), " rows"))
+print(paste0(ncol(customerLocationData), " columns"))
+pander (customerLocationData, caption="Customer Location Data")
+
+```
+
+## Cleaning Rules:
+
+- We need to vaccum the entire floor
+- A duster drone needs to cover the entire square foot area
+- Every toilet and sink must be cleaned
+- 
 
