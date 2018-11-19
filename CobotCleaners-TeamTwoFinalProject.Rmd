@@ -26,11 +26,9 @@ library (pander, quietly = TRUE)
 
 [Click here](https://docs.google.com/document/d/14RsYIWRkcGrVW3ZvBQ0Zhixd4qoAOTht5TTymMF9xBg/edit) to check out our final paper.
 
-# Scenario
+Code for this project is in [GitHub](https://github.com/cwhd/cobot-operations)
 
-Cobot Cleaners is a young startup company that uses cobots (collaborative robots) to clean people's homes. There are several different types of cleaning robots designed for certain environments and tasks. Each customer has a different environment that requires a different configuration of cobots to clean effectively, for example a home with extra high ceilings may require a specialized drone, a house with multiple floors will require a robot that can move up and down the stairs to clean them, a location with carpet will require a different vacuum then one with hardwood floors, etc. Being a startup Cobot Cleaners has a certain quantity of each robot and wants to maximize usage of each robot before investing in growing their cobot workforce.
-
-## Better Scenario
+## Abstract
 
 Robots are becoming cheaper to build and cobotics (collaborative robotics) are creating new business opportunities. The home cleaning market is aroung [TODO get number for this] and is an ideal scenario for cobot cleaning services. This paper explores the opportunity from an operations research perspective to determine the ideal configurataion to determine how to transport robots between locations given thier battery and maintenance constraints. This work can be expanded on in the future by simply updating the data used.
 
