@@ -30,11 +30,55 @@ Code for this project is in [GitHub](https://github.com/cwhd/cobot-operations)
 
 ## Abstract
 
-Robots are becoming cheaper to build and cobotics (collaborative robotics) are creating new business opportunities. The home cleaning market is projected to reach $33 billion b 2022 and is an ideal scenario for cobot cleaning services. This paper explores the opportunity from an operations research perspective to determine the ideal configurataion to determine how to package robots together for maximum profitibility, explore which types of robots to invest in based on tarket markets, and the best way to transport them around.
+Robots are becoming cheaper to build and cobotics (collaborative robotics) are creating new business opportunities. The home cleaning market is projected to reach $33 billion b 2022 [1](https://www.zionmarketresearch.com/news/household-cleaners-market) and is an ideal scenario for cobot cleaning services. This paper explores the opportunity from an operations research perspective to determine the ideal configurataion to determine how to package robots together for maximum profitibility, explore which types of robots to invest in based on tarket markets, and the best way to transport them around.
 
 ## Scenarios
 
 ### Scenario 1
+
+A certain configuration of robot is used to clean a certain type of space. For example a house with more bathrooms requires more sink cleaners, a house with carpet needs a special vaccum. We have broken down the configuration needed for each space type into different cleaning packages, where a package represents a certain configuration of robots.
+
+The following data represents our 6 packages available and the robots within them. Note that we already have an idea of how much profit we can make from each package.
+
+TODO - we should pull this data from a file so it's easier to tweak
+
+```{r}
+NProd <- 6
+NResources <- 5
+
+#this represents the list of packages
+ProdNames <- lapply(list(rep("Package-",NProd)),paste0,1:NProd) 
+                 # Product names: Package-1, Package-2, etc. 
+
+#this represents the robots used in each package configuration
+ResNames<- lapply(list(rep("Robot-",NResources)),paste0,1:NResources) 
+                 # Resource names: Robot-1, Robot-2, etc.
+
+#each package has it's own profit amount
+Profit <- matrix(c(20, 16, 18, 16, 19, 20), 
+              ncol=NProd,dimnames=c("Profit",ProdNames))
+
+#this represents how many of each robot is used in each package
+#TODO ideally this would come from a CSV...
+Resources <- matrix(c( 1,0,2,2,4,
+                       2,1,2,2,4,
+                       1,0,1,2,4,
+                       2,2,3,3,5,
+                       0,2,2,3,3,
+                       1,2,3,4,3), 
+              ncol=NProd,dimnames=c(ResNames,ProdNames))
+
+#this represents the number of robots we have available of each type
+Available <- matrix(c(25, 35, 40, 20,25), 
+              ncol=1,dimnames=c(ResNames,"Available"))
+
+DisplayResources <- rbind(Resources, Profit)
+
+pander(DisplayResources, caption="Resources used by each product")
+
+pander (Available, caption="Amount of each Resource Available")
+
+```
 
 - We have 6 packages, we need to determine which is most profitable
 
@@ -43,11 +87,52 @@ maximize profit
 decision variables: 6 packages
 constraints: number of each type of robot
 
+
+Now that everything is set up, run the model
+
+```{r}
+
+prodmodel <- MIPModel() %>%
+  add_variable (x[i], i=1:NProd, type="continuous", lb=0) %>%
+  set_objective (sum_expr(Profit[i] * x[i] , i=1:NProd ), "max") %>%
+  add_constraint (sum_expr(Resources[j,i]*x[i], i=1:NProd) # Left hand side of constraint
+                  <= Available[j],    # Inequality and Right side of constraint
+                  j=1:NResources) %>% # Repeat for each resource, j.  
+  solve_model(with_ROI(solver = "glpk"))
+  
+prodmodel
+results.products <- matrix (rep(-1.0,NProd), nrow = NProd, ncol=1,
+                            dimnames=c(ProdNames,c("x")))
+
+temp <- get_solution (prodmodel, x[i]) # Extracts optimal values of variables   
+results.products <- t(temp [,3] )      # Extracts third column
+
+results.products <- matrix (results.products, nrow = 1, ncol=NProd,
+                            dimnames=c(c("x"),ProdNames))  
+                                       # Resizes and renames 
+
+pander (results.products, caption = "Optimal Production Plan")
+
+```
+
+
 ## Scenario 2
 
 - Use sensitivity analysis to determine where to invest next
 
 from the first scenario we should know what relative profitability is for each robot. We can then look at the shadow pricing (from week 3) to determine which robots are contributing the most to profitibility and therefore where to invest to grow the company.
+
+For this we need to know the cost of each robot, that way we can determine based on the profitibility of each package, which robots do we need to deliver more of our most profitable packages? This will also help us determine which neighborhoods to target for marketing.
+
+We can find shadow pricing with RDuals:
+
+```{r rduals_3var}
+rduals1 <-as.matrix(get_row_duals(prodmodel))
+dimnames(rduals1)<-list(c("Robot 1", "Robot 2", "Robot 3", "Robot 4", "Robot 5"), c("Row Duals"))
+pander(rduals1,caption="Shadow Prices of Constrained Resources")
+```
+
+I think this means Robots 4 and 5 are our primary constrainted resources and we should invest in them to make more $. This model still needs a bit more work. We need to test our hypothesis to see how much more money we can make by buying additional robots. It could also be interesting to use a fixed cost analysis to figure out how many new customers we would need to justify the investment.
 
 ## Scenario 3
 
@@ -55,6 +140,10 @@ from the first scenario we should know what relative profitability is for each r
 
 
 We would like to determine which cobots to invest in to maximize growth while minimizing overhead. Their target market includes houses in planned neighborhoods and apartments with known configurations, so we should be able to project which cobots need to be built or configured to meet an estimated demand. Ideally we would like to find apartment complexes or neighborhoods that we can work in where we can optimize our investments, finding the ideal number of robots based on real estate data should help us do this.
+
+
+
+[FOR NOW IGNORE EVERYTHING BELOW THE LINE]
 
 ### Robot Information
 
@@ -102,74 +191,13 @@ pander (customerLocationData, caption="Customer Location Data")
 
 ## Cleaning Rules:
 
+TODO not sure if we need this section?
+
 - We need to vaccum the entire floor
 - A duster drone needs to cover the entire square foot area
 - Every toilet and sink must be cleaned
 - Goal oriented - Hotel scenario
  - 
 
-## Mixing resources
 
-Maybe this just needs to be like the matrix in week 2.
-The products are the mix of robots, or what we need to clean a specific house. They would be made up of several different robots. 
-
-The resources are the number of robots needed to do the work
-
-So translate the following block to robots and stuff!
-
-```{r}
-NProd <- 4
-NResources <- 5
-
-ProdNames <- lapply(list(rep("Config",NProd)),paste0,1:NProd) 
-                 # Product names: Prod1, Prod2, ... 
-
-ResNames<- lapply(list(rep("Robot",NResources)),paste0,1:NResources) 
-                 # Resource names: Res1, Res2, ... 
-
-Profit <- matrix(c(20, 14, 3, 16), 
-              ncol=NProd,dimnames=c("Profit",ProdNames))
-
-Resources <- matrix(c( 6, 8, 6, 7 , 40, 2, 6, 4, 10, 25, 1, 1, 1, 2, 5, 4, 8, 25, 12, 16), 
-              ncol=NProd,dimnames=c(ResNames,ProdNames))
-
-Available <- matrix(c(1440, 1440, 2000, 1000, 9600), 
-              ncol=1,dimnames=c(ResNames,"Available"))
-
-pander(Resources, caption="Resources used by each product")
-
-pander (Available, caption="Amount of each Resource Available")
-
-```
-
-Talk about it here
-
-I think we should have a model to create the configuration, then a table to show what configuration is ideal
-
-and more here
-
-```{r}
-
-prodmodel <- MIPModel() %>%
-  add_variable (x[i], i=1:NProd, type="continuous", lb=0) %>%
-  set_objective (sum_expr(Profit[i] * x[i] , i=1:NProd ), "max") %>%
-  add_constraint (sum_expr(Resources[j,i]*x[i], i=1:NProd) # Left hand side of constraint
-                  <= Available[j],    # Inequality and Right side of constraint
-                  j=1:NResources) %>% # Repeat for each resource, j.  
-  solve_model(with_ROI(solver = "glpk"))
-  
-prodmodel
-results.products <- matrix (rep(-1.0,NProd), nrow = NProd, ncol=1,
-                            dimnames=c(ProdNames,c("x")))
-
-temp <- get_solution (prodmodel, x[i]) # Extracts optimal values of variables   
-results.products <- t(temp [,3] )      # Extracts third column
-
-results.products <- matrix (results.products, nrow = 1, ncol=NProd,
-                            dimnames=c(c("x"),ProdNames))  
-                                       # Resizes and renames 
-
-pander (results.products, caption = "Optimal Production Plan")
-
-```
 
