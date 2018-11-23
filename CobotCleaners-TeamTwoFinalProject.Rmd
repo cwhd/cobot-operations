@@ -56,7 +56,17 @@ Package Information:
  - Package 6 carpet, 2-3 bath, <= 2000 sq ft
 
 
-TODO - we should pull this data from a file so it's easier to tweak
+Here is dataa from the CSV files:
+
+```{r}
+robotData<-read.csv(file="RobotData.csv") #load the data
+packageData<-read.csv(file="packageConfigs.csv") #load the data
+
+pander (robotData, caption="Robot Data")
+pander (packageData, caption="Package Data")
+```
+
+Here is the code and the model with hardcoded data. Ideally we should tweak this so that we're using the data from the CSV files above.
 
 ```{r}
 NProd <- 6
@@ -161,41 +171,9 @@ We would like to determine which cobots to invest in to maximize growth while mi
 
 [FOR NOW IGNORE EVERYTHING BELOW THE LINE]
 
-### Robot Information
+### Location Data
 
-Different configurations of robots are needed for each house or apartment that needs to get clean. For example, if a house has stairs it needs a special sweeper that can move up and down stairs, a special robot is used to clean sinks so the number of sinks can effect the number of robots needed and the time it takes to clean. The following robots and their constraints are available:
-
-Vaccum Robot: Cleans 400 square feet in 30 minutes with a battery life of 2 hours. Can only clean one level of a house at a time, so if there is more than one floor you may need more. This works best on hardwood floors.
-
-Carpet Robot: Specially designed to clean carpets. Can clean 350 square feet in 30 minutes with a battery life of 2 hours.
-
-Duster Drone: Used to fly around the perimiter of a house to dust corners and shelves. Can cover 1200 square feet in 15 minutes and has a battery life of 30 minutes.
-
-Stair Cleaner: Cleans a typcial staircase in 7 minutes, has 2 hour battery life.
-
-Toilet Cleaner: Cleans a toilet in 5 minutes, has a battery life of 2 hours
-
-Sink Cleaner: Cleans a sink in 5 minutes, has a battery life of 2 hours
-
-The following table shows the data for each robot, including cost.
-
-```{r}
-robotData<-read.csv(file="RobotData.csv") #load the data
-print(paste0(nrow(robotData), " rows"))
-print(paste0(ncol(robotData), " columns"))
-pander (robotData, caption="Robot Data")
-
-```
-
-- Take out carpet cleaner
-- Figure out what profit looks like
-
-min cost robots 
-
-
-Talk about stuff more here...
-
-And here is data for the locations we will be cleaning:
+Here is data from Zillow with location information:
 
 ```{r}
 customerLocationData<-read.csv(file="CustomerLocationData.csv") #load the data
@@ -204,16 +182,6 @@ print(paste0(ncol(customerLocationData), " columns"))
 pander (customerLocationData, caption="Customer Location Data")
 
 ```
-
-## Cleaning Rules:
-
-TODO not sure if we need this section?
-
-- We need to vaccum the entire floor
-- A duster drone needs to cover the entire square foot area
-- Every toilet and sink must be cleaned
-- Goal oriented - Hotel scenario
- - 
 
 
 

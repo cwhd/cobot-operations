@@ -1,8 +1,6 @@
-Robot Type,Battery Life,Time to work,Cost
-Vaccum,2 hours,400/sq feet - 30 minutes,$400 
-Carpet Cleaner,2 hours,350/sq feet - 30 minutes,$600 
-Duster Drone,30 minutes,1200 sq/ft - 15 minutes,$500 
-Stair Cleaner,2 hours,5 minutes per operation,$500 
-Toilet Cleaner,2 hours,5 minutes per operation,"$1,200 "
-Sink Cleaner,2 hours,5 minutes per operation,"$1,200 "
-Window Cleaner,1 hour,1 minute per 2 sq/foot of window,"$1,200 "
+Robot,Type, Cost ,Available
+1,Vaccum, $400.00 ,35
+2,Carpet Cleaner, $600.00 ,25
+3,Sink Cleaner, $500.00 ,20
+4,Duster Drone, $300.00 ,30
+5,Window Cleaner, $600.00 ,35
