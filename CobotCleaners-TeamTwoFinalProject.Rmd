@@ -61,9 +61,11 @@ Package Information:
 Here is dataa from the CSV files:
 
 ```{r}
-robotData<-read.csv(file="RobotData.csv") #load the data
-packageData<-read.csv(file="packageConfigs.csv", header = T) #load the data
+#load the data
+robotData<-read.csv(file="RobotData.csv") 
+packageData<-read.csv(file="packageConfigs.csv", header = T) 
 
+#tweak the loaded data so we can work with it
 Resources <- as.matrix(packageData[1:5,-1])
 AvailableF <- robotData[,c(1,4)]
 Available <- as.matrix(AvailableF[,-1])
@@ -76,9 +78,12 @@ pander (robotData, caption="Robot Data")
 pander (packageData, caption="Package Data")
 ```
 
-This is the code from lesson 2 that shows how to work with hardcoded data. At this point it's all commented out, I'm just leaving it here for now as a reference for everyone.
+Profit is determined for each package in a formula which is outside of the scope of this paper. It is the difference between the cost of the service to the customer and the cost of the transportation of the robots to the location and as you can see from the data varies between \$87 - \$100 an hour.
+
 
 ```{r}
+#This is the code from lesson 2 that shows how to work with hardcoded data. At #this point it's all commented out, I'm just leaving it here for now as a #reference for everyone.
+
 #NProd <- 6
 #NResources <- 5
 
@@ -144,16 +149,17 @@ results.products <- matrix (results.products, nrow = 1, ncol=NProd,
                             dimnames=c(c("x"),ProdNames))  
                                        # Resizes and renames 
 
-pander (results.products, caption = "Optimal Production Plan")
+pander (results.products, caption = "Optimal package configuation")
 
 ```
 
+We can't clean part of a house, so let's hone our model further to see what else we can come up with.
 
 ## Scenario 2
 
 - Use sensitivity analysis to determine where to invest next
 
-from the first scenario we should know what relative profitability is for each robot. We can then look at the shadow pricing (from week 3) to determine which robots are contributing the most to profitibility and therefore where to invest to grow the company.
+From the first scenario we should know what relative profitability is for each robot. We can then look at the shadow pricing (from week 3) to determine which robots are contributing the most to profitibility and therefore where to invest to grow the company.
 
 For this we need to know the cost of each robot, that way we can determine based on the profitibility of each package, which robots do we need to deliver more of our most profitable packages? This will also help us determine which neighborhoods to target for marketing.
 
@@ -165,11 +171,11 @@ dimnames(rduals1)<-list(c("Robot 1", "Robot 2", "Robot 3", "Robot 4", "Robot 5")
 pander(rduals1,caption="Shadow Prices of Constrained Resources")
 ```
 
-I think this means Robots 4 and 5 are our primary constrainted resources and we should invest in them to make more $. Let's try to add a few more of robots 4 and 5 to see what happens.
+I think this means Robots 3, 4, and 5 are our primary constrainted resources and we should invest in them to make more $. Let's try to add a few more of robots to see what happens.
 
 ```{r}
 #First add a few robots of type 4 and 5
-Available <- matrix(c(25, 35, 40, 22,23), 
+Available <- matrix(c(25, 35, 45, 30,36), 
               ncol=1,dimnames=c(ResNames,"Available"))
 
 #now re-run the model
@@ -194,13 +200,32 @@ results.products <- matrix (results.products, nrow = 1, ncol=NProd,
                             dimnames=c(c("x"),ProdNames))  
                                        # Resizes and renames 
 
-pander (results.products, caption = "Optimal Production Plan")
+pander (results.products, caption = "Optimal Package Configurations")
 
 ```
 
-That's interesting. By changing some parameters and running this again we can see that by adding a few more  robots our focus changes from package 5 mixed with package 1, to mostly package 5.
 
 I think this tells us that package 5 is the best package to focus on with the mix of robots we have. With a bit of additional investment we can focus primarily on the building type ideal for configuration 5.
+
+If we now look at overall profitibility based on what we have;
+- We know with our optimal configuration we can clean 8 of house type 5 and 3 of house type 1 at a time
+- Cleaning one location and transportation the the next location combined typically takes 2 hours
+
+That means we our profit of $1060 for every 2 hours in an 8 hour work day adds up to \$4,240 per day profit. If we can operate 6 days a week that gets us \$25,440 per week of profit.
+
+If we go back to the number of robots we started with, they represented a total investment of $69,000. At our current profit rate we would make back our investment in less than 3 weeks! Let's take a look at that in R:
+
+```{r}
+
+#multiple the cost by the available amout of robots to get investment, sum it up
+
+AvailableT <- robotData[,c(3,4)]
+AvailableT$Cost <- as.numeric(sub("\\$","", AvailableT$Cost))
+AvailableT$robotCosts <- AvailableT$Cost * AvailableT$Available
+totalCost <- sum(AvailableT$robotCosts)
+print(paste0("Total Robot Investment: $",totalCost))
+
+```
 
 ## Scenario 3
 

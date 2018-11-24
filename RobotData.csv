@@ -1,6 +1,7 @@
-Robot,Type, Cost ,Available
-1,Vaccum, $400.00 ,35
-2,Carpet Cleaner, $600.00 ,25
-3,Sink Cleaner, $500.00 ,20
-4,Duster Drone, $300.00 ,30
-5,Window Cleaner, $600.00 ,35
+Robot,Type, Cost ,Available,Invested
+1,Vaccum, $400.00 ,35," $14,000.00 "
+2,Carpet Cleaner, $600.00 ,25," $15,000.00 "
+3,Sink Cleaner, $500.00 ,20," $10,000.00 "
+4,Duster Drone, $300.00 ,30," $9,000.00 "
+5,Window Cleaner, $600.00 ,35," $21,000.00 "
+,,,,
