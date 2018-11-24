@@ -67,8 +67,7 @@ packageData<-read.csv(file="packageConfigs.csv", header = T) #load the data
 Resources <- as.matrix(packageData[1:5,-1])
 AvailableF <- robotData[,c(1,4)]
 Available <- as.matrix(AvailableF[,-1])
-#Profit <- matrix(packageData[6,-1], 
-#              ncol=length(packageData[6,-1]))#,dimnames=c("Profit",ProdNames))
+Profit <- as.matrix(packageData[6,-1])
 
 NProd <- ncol(Resources)
 NResources <- nrow(robotData)
@@ -77,7 +76,7 @@ pander (robotData, caption="Robot Data")
 pander (packageData, caption="Package Data")
 ```
 
-Here is the code and the model with hardcoded data. Ideally we should tweak this so that we're using the data from the CSV files above.
+This is the code from lesson 2 that shows how to work with hardcoded data. At this point it's all commented out, I'm just leaving it here for now as a reference for everyone.
 
 ```{r}
 #NProd <- 6
@@ -92,8 +91,8 @@ Here is the code and the model with hardcoded data. Ideally we should tweak this
                  # Resource names: Robot-1, Robot-2, etc.
 
 #each package has it's own profit amount
-Profit <- matrix(c(20, 16, 18, 16, 19, 20), 
-              ncol=NProd,dimnames=c("Profit",ProdNames))
+#Profit <- matrix(c(20, 16, 18, 16, 19, 20), 
+#              ncol=NProd,dimnames=c("Profit",ProdNames))
 
 
 #this represents how many of each robot is used in each package
