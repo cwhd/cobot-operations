@@ -126,6 +126,20 @@ maximize profit
 decision variables: 6 packages
 constraints: number of each type of robot
 
+Algebraicly that should look like this:
+
+$$
+ \begin{split}
+ \begin{aligned}
+    \text{Maximize  }   &  \sum_{i=1}^{NResources} P_i x_i \\
+    \text{subject to } & \sum_{i=1}^{NResources} R_{i,j}x_i \leq A_j \; \forall \; j\\
+                       & x_i \geq 0  \; \forall \; i
+  \end{aligned}
+  \end{split}
+  (\#eq:Algebraic Model)
+$$
+
+
 Now that everything is set up, run the model
 
 ```{r}
@@ -168,7 +182,7 @@ We can find shadow pricing with RDuals:
 ```{r rduals_3var}
 rduals1 <-as.matrix(get_row_duals(prodmodel))
 dimnames(rduals1)<-list(c("Robot 1", "Robot 2", "Robot 3", "Robot 4", "Robot 5"), c("Row Duals"))
-pander(rduals1,caption="Shadow Prices of Constrained Resources")
+pander(rduals1,caption="Shadow Prices")
 ```
 
 I think this means Robots 3, 4, and 5 are our primary constrainted resources and we should invest in them to make more $. Let's try to add a few more of robots to see what happens.
