@@ -62,7 +62,16 @@ Here is dataa from the CSV files:
 
 ```{r}
 robotData<-read.csv(file="RobotData.csv") #load the data
-packageData<-read.csv(file="packageConfigs.csv") #load the data
+packageData<-read.csv(file="packageConfigs.csv", header = T) #load the data
+
+Resources <- as.matrix(packageData[1:5,-1])
+AvailableF <- robotData[,c(1,4)]
+Available <- as.matrix(AvailableF[,-1])
+#Profit <- matrix(packageData[6,-1], 
+#              ncol=length(packageData[6,-1]))#,dimnames=c("Profit",ProdNames))
+
+NProd <- ncol(Resources)
+NResources <- nrow(robotData)
 
 pander (robotData, caption="Robot Data")
 pander (packageData, caption="Package Data")
@@ -71,15 +80,15 @@ pander (packageData, caption="Package Data")
 Here is the code and the model with hardcoded data. Ideally we should tweak this so that we're using the data from the CSV files above.
 
 ```{r}
-NProd <- 6
-NResources <- 5
+#NProd <- 6
+#NResources <- 5
 
 #this represents the list of packages
-ProdNames <- lapply(list(rep("Package-",NProd)),paste0,1:NProd) 
+#ProdNames <- lapply(list(rep("Package-",NProd)),paste0,1:NProd) 
                  # Product names: Package-1, Package-2, etc. 
 
 #this represents the robots used in each package configuration
-ResNames<- lapply(list(rep("Robot-",NResources)),paste0,1:NResources) 
+#ResNames<- lapply(list(rep("Robot-",NResources)),paste0,1:NResources) 
                  # Resource names: Robot-1, Robot-2, etc.
 
 #each package has it's own profit amount
@@ -88,29 +97,21 @@ Profit <- matrix(c(20, 16, 18, 16, 19, 20),
 
 
 #this represents how many of each robot is used in each package
-Resources <- matrix(c( 1,0,2,2,4,
-                       1,1,2,2,4,
-                       1,0,1,2,4,
-                       2,2,3,3,5,
-                       0,2,2,3,3,
-                       1,2,3,4,3), 
-              ncol=NProd,dimnames=c(ResNames,ProdNames))
+#Resources <- matrix(c( 1,0,2,2,4,
+#                       1,1,2,2,4,
+#                       1,0,1,2,4,
+#                       2,2,3,3,5,
+#                       0,2,2,3,3,
+#                       1,2,3,4,3), 
+#              ncol=NProd,dimnames=c(ResNames,ProdNames))
 
 #this represents the number of robots we have available of each type
-Available <- matrix(c(25, 35, 40, 20,25), 
-              ncol=1,dimnames=c(ResNames,"Available"))
+#Available <- matrix(c(25, 35, 40, 20,25), 
+#              ncol=1,dimnames=c(ResNames,"Available"))
 
-#here are the variables from the file but they don't work in the formula below for some reason. I think they're in the wrong format...
-#Resources <- as.matrix(packageData[1:5,])
-#Available <- as.matrix(robotData[,c(1,4)])
-#Profit <- packageData[6,]
-
-#NProd <- ncol(Resources)
-#NResources <- nrow(robotData)
-
-DisplayResources <- rbind(Resources, Profit)
-pander(DisplayResources, caption="Resources used by each product")
-pander (Available, caption="Amount of each Resource Available")
+#DisplayResources <- rbind(Resources, Profit)
+#pander(DisplayResources, caption="Resources used by each product")
+#pander (Available, caption="Amount of each Resource Available")
 
 ```
 
