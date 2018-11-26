@@ -244,7 +244,7 @@ If we go back to the number of robots we started with, they represented a total 
 
 #multiple the cost by the available amout of robots to get investment, sum it up
 
-AvailableT <- robotData[,c(3,4)]
+AvailableT <- robotData[1:5,c(3,4)] #if you update the number of robots, change this
 AvailableT$Cost <- as.numeric(sub("\\$","", AvailableT$Cost))
 AvailableT$robotCosts <- AvailableT$Cost * AvailableT$Available
 totalCost <- sum(AvailableT$robotCosts)
