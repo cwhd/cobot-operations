@@ -47,32 +47,36 @@ Robot Information:
  - Robot 2 is the carpet vaccum, not needed if there is no carpet
  - Robot 3 is the sink cleaner, we need more for more bathrooms
  - Robot 4 is the duster drone, we need more for bigger spaces
- - Robot 5 is the window cleaner, we need more for more winds, generally bigger spaces
+ - Robot 5 is the window cleaner, we need more for more windows, which we've associated to generally bigger spaces
 
 Package Information:
- - Package 1 covers a 1 bathroom apartment or house, <= 1400 square feet with no carpet
- - Package 2 covers a 1 bathroom apt or house, <= 1400 sq ft with carpet
- - Package 3 no carpet, 1 bathroom
- - Package 4 2 bath, carpet, <= 2300 sq ft
- - Package 5 all carpet 2 bath <= 2000 sq ft
- - Package 6 carpet, 2-3 bath, <= 2000 sq ft
+ - Package 1: 1 bathroom apartment or house, <= 1400 square feet with no carpet
+ - Package 2: 1 bathroom apt or house, <= 1400 sq ft with carpet
+ - Package 3: no carpet, 1 bathroom
+ - Package 4: 2 bath, some carpet, <= 2300 sq ft
+ - Package 5: fully or almost fully carpeted, 2 bath <= 2000 sq ft
+ - Package 6: fully or almost fully carpeted, 2-3 bath, <= 2000 sq ft
 
 
 Here is dataa from the CSV files:
 
 ```{r}
 #load the data
-robotData<-read.csv(file="RobotData.csv") 
+robotData<-read.csv(file="RobotData.csv", header = T) 
 packageData<-read.csv(file="packageConfigs.csv", header = T) 
 
 #tweak the loaded data so we can work with it
 Resources <- as.matrix(packageData[1:5,-1])
-AvailableF <- robotData[,c(1,4)]
+AvailableF <- robotData[-6,c(1,4)] #remove 1 mystery row at the end of the matrix
 Available <- as.matrix(AvailableF[,-1])
 Profit <- as.matrix(packageData[6,-1])
 
-NProd <- ncol(Resources)
-NResources <- nrow(robotData)
+NPkgs <- ncol(Resources)
+NRobot <- nrow(AvailableF)
+
+#this represents the list of packages
+ProdNames <- lapply(list(rep("Package-",NPkgs)),paste0,1:NPkgs) 
+                 # Product names: Package-1, Package-2, etc. 
 
 pander (robotData, caption="Robot Data")
 pander (packageData, caption="Package Data")
@@ -126,12 +130,17 @@ maximize profit
 decision variables: 6 packages
 constraints: number of each type of robot
 
+Variables:
+$$P_i$$ -- amount of profit per package
+$$R_i$$ -- number of resources 
+
+
 Algebraicly that should look like this:
 
 $$
  \begin{split}
  \begin{aligned}
-    \text{Maximize  }   &  \sum_{i=1}^{NResources} P_i x_i \\
+    \text{Maximize  }   &  \sum_{i=1}^{NProd} P_i x_i \\
     \text{subject to } & \sum_{i=1}^{NResources} R_{i,j}x_i \leq A_j \; \forall \; j\\
                        & x_i \geq 0  \; \forall \; i
   \end{aligned}
@@ -143,23 +152,20 @@ $$
 Now that everything is set up, run the model
 
 ```{r}
-
 prodmodel <- MIPModel() %>%
-  add_variable (x[i], i=1:NProd, type="continuous", lb=0) %>%
-  set_objective (sum_expr(Profit[i] * x[i] , i=1:NProd ), "max") %>%
-  add_constraint (sum_expr(Resources[j,i]*x[i], i=1:NProd) # Left hand side of constraint
-                  <= Available[j],    # Inequality and Right side of constraint
-                  j=1:NResources) %>% # Repeat for each resource, j.  
+  add_variable (x[i], i=1:NPkgs, type="continuous", lb=0) %>% #using integer so we don't clean partial houses.
+  set_objective (sum_expr(Profit[i] * x[i] , i=1:NPkgs ), "max") %>%
+  add_constraint (sum_expr(Resources[i,j] * x[j], j=1:NPkgs) # Left hand side of constraint
+                  <= Available[i],    # Inequality and Right side of constraint
+                  i=1:NRobot) %>% # Repeat for each resource, j.  
   solve_model(with_ROI(solver = "glpk"))
   
 prodmodel
-results.products <- matrix (rep(-1.0,NProd), nrow = NProd, ncol=1,
-                            dimnames=c(ProdNames,c("x")))
 
 temp <- get_solution (prodmodel, x[i]) # Extracts optimal values of variables   
 results.products <- t(temp [,3] )      # Extracts third column
 
-results.products <- matrix (results.products, nrow = 1, ncol=NProd,
+results.products <- matrix (results.products, nrow = 1, ncol=NPkgs,
                             dimnames=c(c("x"),ProdNames))  
                                        # Resizes and renames 
 
@@ -167,7 +173,7 @@ pander (results.products, caption = "Optimal package configuation")
 
 ```
 
-We can't clean part of a house, so let's hone our model further to see what else we can come up with.
+It appears the model has a distribution of packages. We want to further analyze the potential to expand the business and understand how to add value. Moving to scenario 2.   
 
 ## Scenario 2
 
@@ -189,6 +195,10 @@ I think this means Robots 3, 4, and 5 are our primary constrainted resources and
 
 ```{r}
 #First add a few robots of type 4 and 5
+#this represents the robots used in each package configuration
+ResNames<- lapply(list(rep("Robot-",NRobot)),paste0,1:NRobot) 
+                 # Resource names: Robot-1, Robot-2, etc.
+
 Available <- matrix(c(25, 35, 45, 30,36), 
               ncol=1,dimnames=c(ResNames,"Available"))
 
@@ -196,21 +206,22 @@ Available <- matrix(c(25, 35, 45, 30,36),
 
 
 prodmodel2 <- MIPModel() %>%
-  add_variable (x[i], i=1:NProd, type="continuous", lb=0) %>%
-  set_objective (sum_expr(Profit[i] * x[i] , i=1:NProd ), "max") %>%
-  add_constraint (sum_expr(Resources[j,i]*x[i], i=1:NProd) # Left hand side of constraint
+  add_variable (x[i], i=1:NPkgs, type="continuous", lb=0) %>%
+  set_objective (sum_expr(Profit[i] * x[i] , i=1:NPkgs ), "max") %>%
+  add_constraint (sum_expr(Resources[j,i]*x[i], i=1:NPkgs) # Left hand side of constraint
                   <= Available[j],    # Inequality and Right side of constraint
-                  j=1:NResources) %>% # Repeat for each resource, j.  
+                  j=1:NRobot) %>% # Repeat for each resource, j.  
   solve_model(with_ROI(solver = "glpk"))
   
 prodmodel2
-results.products <- matrix (rep(-1.0,NProd), nrow = NProd, ncol=1,
+
+results.products <- matrix (rep(-1.0,NPkgs), nrow = NPkgs, ncol=1,
                             dimnames=c(ProdNames,c("x")))
 
 temp <- get_solution (prodmodel2, x[i]) # Extracts optimal values of variables   
 results.products <- t(temp [,3] )      # Extracts third column
 
-results.products <- matrix (results.products, nrow = 1, ncol=NProd,
+results.products <- matrix (results.products, nrow = 1, ncol=NPkgs,
                             dimnames=c(c("x"),ProdNames))  
                                        # Resizes and renames 
 
