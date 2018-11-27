@@ -275,3 +275,25 @@ pander (customerLocationData, caption="Customer Location Data")
 
 
 
+
+
+```{r}
+NCust <- customerLocationData$Customer
+NPack <- results.products[,c(1,5)]
+NBasemiles <- customerLocationData$Distance.from.base..miles.
+  
+prodmodel4 <- MIPModel() %>%
+  
+  add_variable(x[i,j], i = 1:NCust, j = 1:NPack, type = "integer", lb = 0) %>%
+  
+  set_objective(sum_expr(NBasemiles[i] * sum_expr(x[i,j], j = 1:NPack), i = 1:NCust ), "min") %>%
+  
+  add_constraint(NPack >= 0) %>%
+  add_constraint(NCust >= 0) %>%
+  
+   solve_model(with_ROI(solver = "glpk"))
+  
+prodmodel4
+```
+
+
