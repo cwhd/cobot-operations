@@ -132,7 +132,7 @@ constraints: number of each type of robot
 
 Variables:
 $$P_i$$ -- amount of profit per package
-$$R_i$$ -- number of resources 
+$$R_{i,j}$$ -- number of resources 
 
 
 Algebraicly that should look like this:
@@ -140,8 +140,8 @@ Algebraicly that should look like this:
 $$
  \begin{split}
  \begin{aligned}
-    \text{Maximize  }   &  \sum_{i=1}^{NProd} P_i x_i \\
-    \text{subject to } & \sum_{i=1}^{NResources} R_{i,j}x_i \leq A_j \; \forall \; j\\
+    \text{Maximize  }   &  \sum_{i=1}^{NPkgs} P_i x_i \\
+    \text{subject to } & \sum_{j=1}^{NRobot} R_{i,j}x_i \leq A_j \; \forall \; j\\
                        & x_i \geq 0  \; \forall \; i
   \end{aligned}
   \end{split}
@@ -191,7 +191,9 @@ dimnames(rduals1)<-list(c("Robot 1", "Robot 2", "Robot 3", "Robot 4", "Robot 5")
 pander(rduals1,caption="Shadow Prices")
 ```
 
-I think this means Robots 3, 4, and 5 are our primary constrainted resources and we should invest in them to make more $. Let's try to add a few more of robots to see what happens.
+In the Row Duals value of shadow pricing we see a couple of interesting things. First is that Robot 1 and Robot 2 have values of 0. This means that if we add additional robots of those types we won't be able to increase profitability since they are not limiting the creation of new additional customer packages. 
+
+On the other hand, Robot 5 and 4 have significant price increases that they can add. 
 
 ```{r}
 #First add a few robots of type 4 and 5
@@ -256,7 +258,29 @@ print(paste0("Total Robot Investment: $",totalCost))
 
 - Finally we will do the transportation problem so that we can determine which van to send to which neighborhood
 
+```{r}
+#Tuesday code added by Brandon
 
+#assuming 1.25 kWh/mi and estimated transportation distances between neighborhoods. 
+#made-up electric demand based on roomba usage found online
+#made-up electric supply for vehicles, which house internal battery that powers the drive train as well as recharging robot units between services within a neighborhood. 
+
+TransportData <- read.csv("TransportationData.csv")
+
+TransportData
+
+
+
+TransportationMod <- MIPModel() %>%
+  add_variable(x[i,j], i=1:4, j=1:4, type = "binary", lb=0) %>% 
+  set_objective(sum_expr(TransCost[i,j] * x[i,j], j=1:3, i=1:3)  , "min") %>%
+    add_constraint (sum_expr(x[i,j]*(ElectDmd[j]+TransCost[i,j]), i=1:3)
+                    <= BattSupp[i],
+                    j=1:3) %>% #adds constraint for supply side limitation setup by the conditions of the problem. This is taken into account by using the == in the equality setup. 
+    add_constraint (sum_expr(x[i,j], i=1:nSuppliers)
+                    <= Capacity[j],
+                    j=1:nCustomers) #adds constraint for capacity of customers, which while not limited, still needs to be considered as a constraint for the model. That's why it is <= equality.
+```
 
 
 [FOR NOW IGNORE EVERYTHING BELOW THE LINE]
@@ -278,7 +302,7 @@ pander (customerLocationData, caption="Customer Location Data")
 
 
 ```{r}
-NCust <- customerLocationData$Customer
+NCust <- customerLocationData
 NPack <- results.products[,c(1,5)]
 NBasemiles <- customerLocationData$Distance.from.base..miles.
   
