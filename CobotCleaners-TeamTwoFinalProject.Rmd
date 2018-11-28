@@ -65,14 +65,15 @@ Here is dataa from the CSV files:
 robotData<-read.csv(file="RobotData.csv", header = T) 
 packageData<-read.csv(file="packageConfigs.csv", header = T) 
 
+rem_row <- robotData[-6,]
+
 #tweak the loaded data so we can work with it
-Resources <- as.matrix(packageData[1:5,-1])
-AvailableF <- robotData[-6,c(1,4)] #remove 1 mystery row at the end of the matrix
-Available <- as.matrix(AvailableF[,-1])
+Packages <- as.matrix(packageData[1:5,-1])
+Robot_Inv <- as.matrix(rem_row[1:5,4]) #remove 1 mystery row at the end of the matrix
 Profit <- as.matrix(packageData[6,-1])
 
-NPkgs <- ncol(Resources)
-NRobot <- nrow(AvailableF)
+NPkgs <- ncol(Packages)
+NRobot <- nrow(Robot_Inv)
 
 #this represents the list of packages
 ProdNames <- lapply(list(rep("Package-",NPkgs)),paste0,1:NPkgs) 
@@ -132,16 +133,16 @@ constraints: number of each type of robot
 
 Variables:
 $$P_i$$ -- amount of profit per package
-$$R_{i,j}$$ -- number of resources 
+$$R_{i,j}$$ -- number of robots of each robot type available
 
 
-Algebraicly that should look like this:
+Algebraicly our optimization model should look like this:
 
 $$
  \begin{split}
  \begin{aligned}
     \text{Maximize  }   &  \sum_{i=1}^{NPkgs} P_i x_i \\
-    \text{subject to } & \sum_{j=1}^{NRobot} R_{i,j}x_i \leq A_j \; \forall \; j\\
+    \text{subject to } & \sum_{j=1}^{NRobot} R_{i,j}x_j \leq A_i \; \forall \; i\\
                        & x_i \geq 0  \; \forall \; i
   \end{aligned}
   \end{split}
@@ -153,11 +154,11 @@ Now that everything is set up, run the model
 
 ```{r}
 prodmodel <- MIPModel() %>%
-  add_variable (x[i], i=1:NPkgs, type="continuous", lb=0) %>% #using integer so we don't clean partial houses.
+  add_variable (x[i], i=1:NPkgs, type="continuous", lb=0) %>% 
   set_objective (sum_expr(Profit[i] * x[i] , i=1:NPkgs ), "max") %>%
-  add_constraint (sum_expr(Resources[i,j] * x[j], j=1:NPkgs) # Left hand side of constraint
-                  <= Available[i],    # Inequality and Right side of constraint
-                  i=1:NRobot) %>% # Repeat for each resource, j.  
+  add_constraint (sum_expr(Packages[i,j] * x[j], j=1:NPkgs) 
+                  <= Robot_Inv[i],    #
+                  i=1:NRobot) %>% # 
   solve_model(with_ROI(solver = "glpk"))
   
 prodmodel
@@ -196,12 +197,13 @@ In the Row Duals value of shadow pricing we see a couple of interesting things. 
 On the other hand, Robot 5 and 4 have significant price increases that they can add. 
 
 ```{r}
-#First add a few robots of type 4 and 5
+#First five robots of both type 4 and 5
 #this represents the robots used in each package configuration
+
 ResNames<- lapply(list(rep("Robot-",NRobot)),paste0,1:NRobot) 
                  # Resource names: Robot-1, Robot-2, etc.
 
-Available <- matrix(c(25, 35, 45, 30,36), 
+More_Robots <- matrix(c(35, 25, 20, 35, 40), 
               ncol=1,dimnames=c(ResNames,"Available"))
 
 #now re-run the model
@@ -210,12 +212,12 @@ Available <- matrix(c(25, 35, 45, 30,36),
 prodmodel2 <- MIPModel() %>%
   add_variable (x[i], i=1:NPkgs, type="continuous", lb=0) %>%
   set_objective (sum_expr(Profit[i] * x[i] , i=1:NPkgs ), "max") %>%
-  add_constraint (sum_expr(Resources[j,i]*x[i], i=1:NPkgs) # Left hand side of constraint
-                  <= Available[j],    # Inequality and Right side of constraint
+  add_constraint (sum_expr(Packages[j,i]*x[i], i=1:NPkgs) # Left hand side of constraint
+                  <= More_Robots[j],    # Inequality and Right side of constraint
                   j=1:NRobot) %>% # Repeat for each resource, j.  
   solve_model(with_ROI(solver = "glpk"))
   
-prodmodel2
+prodmodel2 #Brandon checked up to here! 11/27
 
 results.products <- matrix (rep(-1.0,NPkgs), nrow = NPkgs, ncol=1,
                             dimnames=c(ProdNames,c("x")))
@@ -269,17 +271,18 @@ TransportData <- read.csv("TransportationData.csv")
 
 TransportData
 
+TransCost = as.matrix(TransportData[1:3,2:4])
+ElectDmd = as.matrix(TransportData[4,2:4])
+BattSupp = as.matrix(TransportData[1:3,5])
 
 
 TransportationMod <- MIPModel() %>%
-  add_variable(x[i,j], i=1:4, j=1:4, type = "binary", lb=0) %>% 
+  add_variable(x[i,j], i=1:3, j=1:3, type = "binary", lb=0) %>% 
   set_objective(sum_expr(TransCost[i,j] * x[i,j], j=1:3, i=1:3)  , "min") %>%
-    add_constraint (sum_expr(x[i,j]*(ElectDmd[j]+TransCost[i,j]), i=1:3)
+    add_constraint(x[i,j]*(ElectDmd[j]+TransCost[i,j])
                     <= BattSupp[i],
-                    j=1:3) %>% #adds constraint for supply side limitation setup by the conditions of the problem. This is taken into account by using the == in the equality setup. 
-    add_constraint (sum_expr(x[i,j], i=1:nSuppliers)
-                    <= Capacity[j],
-                    j=1:nCustomers) #adds constraint for capacity of customers, which while not limited, still needs to be considered as a constraint for the model. That's why it is <= equality.
+                    i=1:3, j=1:3) #adds constraint for supply side limitation setup by the conditions of the problem. This is taken into account by using the == in the equality setup. 
+   
 ```
 
 
