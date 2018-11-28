@@ -24,6 +24,8 @@ library (pander, quietly = TRUE)
 
 ## Final Paper
 
+Factor the effect job displacement in the age of automation
+
 [Click here](https://docs.google.com/document/d/14RsYIWRkcGrVW3ZvBQ0Zhixd4qoAOTht5TTymMF9xBg/edit) to check out our final paper.
 
 Code for this project is in [GitHub](https://github.com/cwhd/cobot-operations)
@@ -207,7 +209,6 @@ More_Robots <- matrix(c(35, 25, 20, 35, 40),
               ncol=1,dimnames=c(ResNames,"Available"))
 
 #now re-run the model
-
 
 prodmodel2 <- MIPModel() %>%
   add_variable (x[i], i=1:NPkgs, type="continuous", lb=0) %>%
